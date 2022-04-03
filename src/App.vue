@@ -1,28 +1,25 @@
 <template>
-  <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <div>
+    <Header></Header>
+    <!-- 路由组件出口的地方 -->
+    <router-view></router-view>
+    <!-- 在Home、Search显示，在注册登录时隐藏 -->
+    <Footer></Footer>
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
-
+//引入
+import Header from "./components/Header/index.vue";
+import Footer from "./components/Footer/index.vue"
 export default {
-  name: 'App',
+  name: "",
   components: {
-    HelloWorld
-  }
-}
+    Header,
+    Footer
+  },
+};
 </script>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
+<style scoped>
 </style>
