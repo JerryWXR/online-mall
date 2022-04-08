@@ -4,6 +4,7 @@
         <!-- 事件的委派 -->
       <div @mouseleave="leaveIndex">
         <h2 class="all">全部商品分类</h2>
+        <!-- 三级联动 -->
         <div class="sort">
           <div class="all-sort-list2">
             <div
@@ -13,9 +14,10 @@
               :class="{ cur: currentIndex == index }"
             >
               <h3 @mouseenter="changeIndex(index)">
-                <a href="">{{ c1.categoryName }}-- {{ index }}</a>
+                <a href="">{{ c1.categoryName }}</a>
               </h3>
-              <div class="item-list clearfix">
+              <!-- 二级、三级分类 -->
+              <div class="item-list clearfix" :style="{display:currentIndex==index?'block':'none'}">
                 <div
                   class="subitem"
                   v-for="(c2, index) in c1.categoryChild"
@@ -56,6 +58,9 @@
 
 <script>
 import { mapState } from "vuex";
+// 引入方式：是吧lodash所有的功能全部引入，但是最好的方式是按需引入
+import throttle from 'lodash/throttle'
+
 export default {
   name: "TypeNav",
   // 组件挂载完毕：可以向服务器发请求
@@ -78,10 +83,14 @@ export default {
   },
   methods: {
     // 鼠标进入修改响应式数据currenIndex属性
-    changeIndex(index) {
-      // index鼠标移上某一个一级分类的索引值
+    // throttle回调函数别用箭头函数，可能会报错
+    changeIndex:throttle(function (index) {
+        // index鼠标移上某一个一级分类的索引值
+    //   正常情况下（用户慢慢的操作）：鼠标进入，每一个一级分类h3，都会触发鼠标进入事件
+    // 非正常情况下（用户操作很快）：本身全部的一级分类都应该触发鼠标进入事件，但是经过测试，只有部分h3触发了
+    // 就是由于用户行为过快，导致浏览器反应不过来
       this.currentIndex = index;
-    },
+    },50),
     // 一级分类鼠标移出的事件回调
     leaveIndex() {
       // 鼠标移出currentIndex，变为-1
