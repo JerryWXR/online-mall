@@ -2,11 +2,14 @@
   <div class="type-nav">
     <div class="container">
         <!-- 事件的委派 -->
-      <div @mouseleave="leaveIndex">
+      <div @mouseleave="leaveShow" @mouseenter="enterShow">
         <h2 class="all">全部商品分类</h2>
         <!-- 三级联动 -->
-        <div class="sort">
-          <div class="all-sort-list2">
+        <!--过渡动画  -->
+        <transition name="sort">
+        <div class="sort" v-show="show">
+            <!-- 利用事件委派+编程式导航实现路由的跳转与传递参数 -->
+          <div class="all-sort-list2" @click="goSearch">
             <div
               class="item"
               v-for="(c1, index) in categoryList"
@@ -14,7 +17,7 @@
               :class="{ cur: currentIndex == index }"
             >
               <h3 @mouseenter="changeIndex(index)">
-                <a href="">{{ c1.categoryName }}</a>
+                <a :data-categoryName="c1.categoryName" :data-category1Id="c1.categoryId">{{ c1.categoryName }}</a>
               </h3>
               <!-- 二级、三级分类 -->
               <div class="item-list clearfix" :style="{display:currentIndex==index?'block':'none'}">
@@ -25,14 +28,14 @@
                 >
                   <dl class="fore">
                     <dt>
-                      <a href="">{{ c2.categoryName }}</a>
+                      <a :data-categoryName="c2.categoryName" :data-category2Id="c2.categoryId">{{ c2.categoryName }}</a>
                     </dt>
                     <dd>
                       <em
                         v-for="(c3, index) in c2.categoryChild"
                         :key="c3.categoryId"
                       >
-                        <a href="">{{ c3.categoryName }}</a>
+                        <a :data-categoryName="c3.categoryName" :data-category3Id="c3.categoryId">{{ c3.categoryName }}</a>
                       </em>
                     </dd>
                   </dl>
@@ -41,6 +44,7 @@
             </div>
           </div>
         </div>
+        </transition>
       </div>
       <nav class="nav">
         <a href="###">服装城</a>
@@ -68,11 +72,18 @@ export default {
     return {
       // 存储用户鼠标移上哪一个一级分类
       currentIndex: -1,
+      show:true
     };
   },
   mounted() {
     // 通知vuex发请求，获取数据，存储与仓库之中
-    this.$store.dispatch("categoryList");
+   
+    // 当组件挂载完毕，让show属性变为false
+//    如果不是home组件，将typenav隐藏
+if(this.$route.path!='/home'){
+    this.show = false;
+}
+    
   },
   computed: {
     ...mapState({
@@ -96,6 +107,51 @@ export default {
       // 鼠标移出currentIndex，变为-1
       this.currentIndex = -1;
     },
+    // 进行路由跳转的方法
+    goSearch(event){
+        // 最好的解决办法：编程式导航+事件的委派
+        // 利用事件委派的一些问题：1.点击的一定是a标签？2.如何获取参数
+
+        // 第一个问题：子节点中a标签加上自定义属性:data-categoryName，其余子节点是没有的
+        let node = event.target;
+        // 获取到当前触发这个事件的节点
+        // 节点有一个属性dataset，可以获取节点的自定义属性与属性值
+       let {categoryname,category1id,category2id,category3id} = node.dataset;
+    //    如果标签身上拥有categoryName一定是a标签
+    if(categoryname){
+        // 整理路由跳转的的参数
+        let location ={name:'search'};
+        let query ={categoryName:categoryname};
+        // 一级分类、二级分类、三级分类
+        if(category1id){
+            query.category1Id=category1id;
+        }else if(category2id){
+            query.category2Id=category2id;
+        }else{
+            query.category3Id=category3id;
+        }
+        // 判断：如果路由跳转的时候，带有params参数，顺便传过去
+        if(this.$route.params){
+          location.params = this.$route.params;
+          // 整理完参数
+        location.query = query;
+        // 路由跳转
+        this.$router.push(location); 
+        }
+    }      
+    },
+    // 当鼠标移入的时候，让商品分类列表进行展示
+    enterShow(){
+        this.show=true;
+    },
+    // 当鼠标离开的时候，让商品分类列表进行隐藏
+    leaveShow(){
+        this.currentIndex = -1;
+        // 判断如果是Search路由组件的时候才会执行
+        if(this.$route.path !="/home"){
+        this.show=false;
+        }        
+    }
   },
 };
 </script>
@@ -220,6 +276,19 @@ export default {
           background-color: pink;
         }
       }
+    }
+    // 过渡动画的样式
+    // 过渡动画开始样式
+    .sort-enter{
+        height: 0px;
+    }
+    // 过渡动画结束的样式
+    .sort-enter-to{
+        height: 461px;
+    }
+    // 定义动画的时间和速率
+    .sort-enter-active{
+        transition: all .5s linear;
     }
   }
 }

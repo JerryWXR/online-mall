@@ -5,22 +5,12 @@
         <!--banner轮播-->
         <div class="swiper-container" id="mySwiper">
           <div class="swiper-wrapper">
-            <div class="swiper-slide">
-              <img src="./images/banner1.jpg" />
+            <div class="swiper-slide" v-for="(carousel,index) in  bannerList" :key="carousel.id">
+              <img :src="carousel.imgUrl" />
             </div>
-            <!-- <div class="swiper-slide">
-              <img src="./images/banner2.jpg" />
-            </div>
-            <div class="swiper-slide">
-              <img src="./images/banner3.jpg" />
-            </div>
-            <div class="swiper-slide">
-              <img src="./images/banner4.jpg" />
-            </div> -->
           </div>
           <!-- 如果需要分页器 -->
           <div class="swiper-pagination"></div>
-
           <!-- 如果需要导航按钮 -->
           <div class="swiper-button-prev"></div>
           <div class="swiper-button-next"></div>
@@ -100,8 +90,37 @@
 </template>
 
 <script>
+import {mapState} from 'vuex';
+// 引包
+import Swiper from 'swiper'
 export default {
   name: "",
+  mounted(){
+    // 派发action:通过vuex发起ajax请求，将数据存储在仓库中
+    this.$store.dispatch('getBannerList');
+    setTimeout(()=> {
+      var mySwiper = new Swiper ('.swiper-container', {
+      loop: true, // 循环模式选项
+      // 如果需要分页器
+      pagination: {
+        el: '.swiper-pagination',
+        // 点击小球切换图片
+        clickable:true,
+      },
+      
+      // 如果需要前进后退按钮
+      navigation: {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev',
+      },
+    })  
+    })
+  },
+  computed:{
+    ...mapState({
+      bannerList:state=>state.home.bannerList
+    })
+  }
 };
 </script>
 
@@ -278,3 +297,7 @@ export default {
   }
 }
 </style>
+
+// 第一步:引包(响应JS|CSS)
+// 第二步:页面中的结构必须要有
+// 第三步(页面当中务必要有结构):new swiper实例【轮播图添加动态效果】
