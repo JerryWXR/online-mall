@@ -13,43 +13,44 @@
           </ul>
           <ul class="fl sui-tag">
             <!-- 分类的面包屑 -->
-            <li class="with-x" v-if="searchParams.categoryName">{{searchParams.categoryName}}<i @click="removeCategoryName">×</i></li>
+            <li class="with-x" v-if="searchParams.categoryName">
+              {{ searchParams.categoryName
+              }}<i @click="removeCategoryName">×</i>
+            </li>
             <!-- 关键字的面包屑 -->
-            <li class="with-x" v-if="searchParams.keyword">{{searchParams.keyword}}<i @click="removeKeyword">×</i></li>
+            <li class="with-x" v-if="searchParams.keyword">
+              {{ searchParams.keyword }}<i @click="removeKeyword">×</i>
+            </li>
             <!-- 品牌的面包屑 -->
-            <li class="with-x" v-if="searchParams.trademark">{{searchParams.trademark.split(":")[1]}}<i @click="removeTradeMark">×</i></li>
+            <li class="with-x" v-if="searchParams.trademark">
+              {{ searchParams.trademark.split(":")[1]
+              }}<i @click="removeTradeMark">×</i>
+            </li>
             <!-- 平台的售卖属性面包屑 -->
-            <li class="with-x" v-for="(attrValue,index) in searchParams.props" :key="index">{{attrValue.split(":")[1]}}<i @click="removeAttr(index)">×</i></li>
-
+            <li
+              class="with-x"
+              v-for="(attrValue, index) in searchParams.props"
+              :key="index"
+            >
+              {{ attrValue.split(":")[1] }}<i @click="removeAttr(index)">×</i>
+            </li>
           </ul>
         </div>
 
         <!--selector-->
-        <SearchSelector @trademarkInfo="trademarkInfo" @attrInfo="attrInfo"/>
+        <SearchSelector @trademarkInfo="trademarkInfo" @attrInfo="attrInfo" />
 
         <!--details-->
         <div class="details clearfix">
           <div class="sui-navbar">
             <div class="navbar-inner filter">
-              <!-- 价格 -->
+              <!-- 排序的结构 -->
               <ul class="sui-nav">
-                <li class="active">
-                  <a href="#">综合</a>
+                <li :class="{active:isOne}" @click="changeOrder('1')">
+                  <a>综合<span v-show="isOne" class="iconfont" :class="{'icon-Up-':isAsc,'icon-Down-':isDesc}"></span></a>
                 </li>
-                <li>
-                  <a href="#">销量</a>
-                </li>
-                <li>
-                  <a href="#">新品</a>
-                </li>
-                <li>
-                  <a href="#">评价</a>
-                </li>
-                <li>
-                  <a href="#">价格⬆</a>
-                </li>
-                <li>
-                  <a href="#">价格⬇</a>
+                <li :class="{active:isTwo}" @click="changeOrder('2')">
+                  <a>价格<span v-show="isTwo" class="iconfont" :class="{'icon-Up-':isAsc,'icon-Down-':isDesc}"></span></a>
                 </li>
               </ul>
             </div>
@@ -64,9 +65,9 @@
               >
                 <div class="list-wrap">
                   <div class="p-img">
-                    <a href="item.html" target="_blank"
-                      ><img :src="good.defaultImg"
-                    /></a>
+                    <router-link :to="`/detail/${good.id}`">
+                      <img :src="good.defaultImg"/>
+                    </router-link>
                   </div>
                   <div class="price">
                     <strong>
@@ -101,35 +102,7 @@
             </ul>
           </div>
           <!-- 分页器 -->
-          <div class="fr page">
-            <div class="sui-pagination clearfix">
-              <ul>
-                <li class="prev disabled">
-                  <a href="#">«上一页</a>
-                </li>
-                <li class="active">
-                  <a href="#">1</a>
-                </li>
-                <li>
-                  <a href="#">2</a>
-                </li>
-                <li>
-                  <a href="#">3</a>
-                </li>
-                <li>
-                  <a href="#">4</a>
-                </li>
-                <li>
-                  <a href="#">5</a>
-                </li>
-                <li class="dotted"><span>...</span></li>
-                <li class="next">
-                  <a href="#">下一页»</a>
-                </li>
-              </ul>
-              <div><span>共10页&nbsp;</span></div>
-            </div>
-          </div>
+          <Pagination :pageNo="searchParams.pageNo" :pageSize="searchParams.pageSize" :total="total" :continues="5" @getPageNo="getPageNo" />
         </div>
       </div>
     </div>
@@ -138,110 +111,151 @@
 
 <script>
 import SearchSelector from "./SearchSelector/SearchSelector";
-import { mapGetters } from "vuex";
+import { mapGetters, mapState } from "vuex";
 export default {
-  name: 'Search',
+  name: "Search",
 
   components: {
     SearchSelector,
   },
-  data(){
-    return{
-      searchParams:{
-        category1Id:"",
-        category2Id:"",
-        category3Id:"",
-        categoryName:"",
-        keyword:"",
-        order:"",
-        pageNo:1,
-        pageSize:10,
-        props:[],
-        trademark:"",
-      }
-    }
+  data() {
+    return {
+      searchParams: {
+        category1Id: "",
+        category2Id: "",
+        category3Id: "",
+        categoryName: "",
+        keyword: "",
+        // 初始状态应该是综合：降序
+        order: "1:desc",
+        pageNo: 1,
+        pageSize: 3,
+        props: [],
+        trademark: "",
+      },
+    };
   },
   // 当组件挂栽完毕之前执行一次
-beforeMount(){
-  // 在发请求之前，把接口需要传递的参数进行整理（在给服务器发请求之前，把参数整理好，服务器就会返回查询的数据）
-  Object.assign(this.searchParams,this.$route.query,this.$route.params)
-},
+  beforeMount() {
+    // 在发请求之前，把接口需要传递的参数进行整理（在给服务器发请求之前，把参数整理好，服务器就会返回查询的数据）
+    Object.assign(this.searchParams, this.$route.query, this.$route.params);
+  },
 
   mounted() {
     this.getData();
   },
- 
+
   methods: {
     getData() {
-      this.$store.dispatch("getSearchList",this.searchParams);
+      this.$store.dispatch("getSearchList", this.searchParams);
     },
     // 删除分类的名字
-    removeCategoryName(){
+    removeCategoryName() {
       // 把带给服务器的参数置空了，还需要向服务器发请求
       // 带给服务器的参数说明可有可无，如果属性值为空的字符串，还是会把相应字段带给服务器
       // 但是如果吧相应字段设置为undefined，当前这个字段不会带给服务器
-      this.searchParams.categoryName=undefined;
-      this.searchParams.category1Id=undefined;
-      this.searchParams.category2Id=undefined;
-      this.searchParams.category3Id=undefined;
+      this.searchParams.categoryName = undefined;
+      this.searchParams.category1Id = undefined;
+      this.searchParams.category2Id = undefined;
+      this.searchParams.category3Id = undefined;
       this.getData();
       // 地址栏也需要修改，运行路由跳转
-      if(this.$route.params){
-        this.$router.push({name:"search",params:this.$route.params});
-      }  
+      if (this.$route.params) {
+        this.$router.push({ name: "search", params: this.$route.params });
+      }
     },
     // 删除关键字
-    removeKeyword(){
-      this.searchParams.keyword=undefined;
+    removeKeyword() {
+      this.searchParams.keyword = undefined;
       this.getData();
-    // 通知兄弟组件清除关键字
-    this.$bus.$emit("clear")
-    // 进行路由跳转
-    if(this.$route.query){
-      this.$router.push({name})
-    }
+      // 通知兄弟组件清除关键字
+      this.$bus.$emit("clear");
+      // 进行路由跳转
+      if (this.$route.query) {
+        this.$router.push({ name });
+      }
     },
     // 自定义事件回调
-    trademarkInfo(trademark){
+    trademarkInfo(trademark) {
       // console.log('我是父组件',trademark);
-      
-      this.searchParams.trademark=`${trademark.tmId}:${trademark.tmName}`;
+
+      this.searchParams.trademark = `${trademark.tmId}:${trademark.tmName}`;
       this.getData();
-      
     },
     // 删除品牌信息
-    removeTradeMark(){
-      this.searchParams.trademark=undefined;
+    removeTradeMark() {
+      this.searchParams.trademark = undefined;
       this.getData();
     },
     // 收集平台属性地方的回调函数（自定义事件）
-    attrInfo(attr,attrValue){
-      let props=`${attr.attrId}:${attrValue}:${attr.attrName}`;
-      if(this.searchParams.props.indexOf(props)==-1) this.searchParams.props.push(props);
+    attrInfo(attr, attrValue) {
+      let props = `${attr.attrId}:${attrValue}:${attr.attrName}`;
+      if (this.searchParams.props.indexOf(props) == -1)
+        this.searchParams.props.push(props);
       this.getData();
     },
     // 删除售卖属性
-    removeAttr(index){
-      this.searchParams.props.splice(index,1);
+    removeAttr(index) {
+      this.searchParams.props.splice(index, 1);
       this.getData();
+    },
+    // 排序的操作
+    changeOrder(flag){
+      // flag是一个标记
+      let originOrder = this.searchParams.order;
+      let originFlag = this.searchParams.order.split(":")[0];
+      let originSort = this.searchParams.order.split(":")[1];
+      let newOrder='';
+      if(flag==originFlag){
+        // 点击的是综合
+        newOrder=`${originFlag}:${originSort=="desc"?"asc":"desc"}`       
+      }else{
+        // 点击的是价格
+         newOrder=`${flag}:${'desc'}`
+        
+      }
+      // 将新的值赋予searchParams
+      this.searchParams.order=newOrder;
+      // 再次发请求
+      this.getData();
+    },
+    //自定义回调函数--获取当前第几页
+    getPageNo(pageNo){
+      this.searchParams.pageNo=pageNo;
+      this.getData();
+      
     }
   },
   computed: {
     ...mapGetters(["goodsList"]),
+    isOne(){
+      return this.searchParams.order.indexOf('1')!=-1
+    },
+    isTwo(){
+      return this.searchParams.order.indexOf('2')!=-1
+    },
+    isAsc(){
+      return this.searchParams.order.indexOf('asc')!=-1
+    },
+    isDesc(){
+      return this.searchParams.order.indexOf('desc')!=-1
+    },
+    // 获取search模块
+    ...mapState({
+      total:state=>state.search.searchList.total
+    })
   },
   // 数据监听：监听组件实例身上的属性的属性的值的变化
-  watch:{
+  watch: {
     // 监听路由的信息是否发生变化，如果发生变化，再次发起请求
-    $route(newValue,oldValue){
+    $route(newValue, oldValue) {
       // 再次发请求之之前整理给服务器参数
-      Object.assign(this.searchParams,this.$route.query,this.$route.params)
+      Object.assign(this.searchParams, this.$route.query, this.$route.params);
       // 再次发ajax请求
       this.getData();
-      this.searchParams.category1Id='';
-      this.searchParams.category2Id='';
-      this.searchParams.category3Id='';
-      
-      
+      this.searchParams.category1Id = "";
+      this.searchParams.category2Id = "";
+      this.searchParams.category3Id = "";
     }
   },
 };
