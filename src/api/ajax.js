@@ -2,6 +2,8 @@
 import axios from 'axios'
 // 引入进度条
 import nprogress from 'nprogress';
+// 引入store
+import store from '@/store'
 // 引入进度条样式
 import "nprogress/nprogress.css";
 // start:进度条开始 done：进度条结束
@@ -9,7 +11,7 @@ import "nprogress/nprogress.css";
 
 // 1.利用axios对象的方法creat，去创建一个axios实例
 // 2.request就是axios，只不过稍微配置一下
-const requests = axios.create({
+let requests = axios.create({
     // 配置对象
     // 基础路径，发请求的时候，路径中就会出现api
     baseURL:"/api",
@@ -20,6 +22,10 @@ const requests = axios.create({
 requests.interceptors.request.use((config)=>{
     // config：配置对象，对象里面有一个属性很重要，header请求头
     // 进度条开始动
+    if(store.state.detail.uuid_token){
+        config.headers.userTempId=store.state.detail.uuid_token;
+    }
+    
     nprogress.start();
     return config;
 });

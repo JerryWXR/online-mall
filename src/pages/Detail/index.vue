@@ -99,12 +99,12 @@
             </div>
             <div class="cartWrap">
               <div class="controls">
-                <input autocomplete="off" class="itxt" />
-                <a href="javascript:" class="plus">+</a>
-                <a href="javascript:" class="mins">-</a>
+                <input autocomplete="off" class="itxt" v-model="skuNum" @change="changeSkuNum"/>
+                <a href="javascript:" class="plus" @click="skuNum++">+</a>
+                <a href="javascript:" class="mins" @click="skuNum>1?skuNum--:skuNum=1">-</a>
               </div>
               <div class="add">
-                <a href="javascript:">加入购物车</a>
+                <a @click="addShopcar">加入购物车</a>
               </div>
             </div>
           </div>
@@ -351,6 +351,7 @@ export default {
   name: "Detail",
   data(){
     return {
+      // 购买产品的个数
       skuNum:1
     }
   },
@@ -377,6 +378,27 @@ export default {
     });
     // 点击的售卖属性为高亮
     saleAttrValue.isChecked=1;
+    },
+    changeSkuNum(event){
+        let value=event.target.value*1
+        if(isNaN(value)||value<1){
+          this.skuNum=1
+        }else{
+          this.skuNum=parseInt(value)
+        }
+    },
+    async addShopcar(){
+      // 派发action 
+      try {
+        await this.$store.dispatch('addOrUpdateShopCart',{skuId:this.$route.params.skuid,skuNum:this.skuNum});
+        // 进行路由跳转
+        // 在路由跳转的时候，还需将产品的信息带给下一级的路由组件
+        // 本地存储|会话存储,一般存的是字符串
+        sessionStorage.setItem("SKUINFO",JSON.stringify(this.skuInfo))
+        this.$router.push({name:'addcartsuccess',query:{skuNum:this.skuNum}})
+      }catch(error){
+        alert(error.message)
+      }
     }
   }
 };
