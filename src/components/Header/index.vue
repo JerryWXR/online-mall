@@ -5,13 +5,19 @@
       <div class="container">
         <div class="loginList">
           <p>尚品汇欢迎您！</p>
-          <p>
+          <!-- 没有用户名，未登录 -->
+          <p v-if="!userName">
             <span>请</span>
             <!-- 声明式导航：务必要有to属性 -->
             <router-link to="/login">登录</router-link>
             <router-link href="###" class="register" to="/register"
               >免费注册</router-link
             >
+          </p>
+          <!-- 登陆了 -->
+          <p v-else>
+            <a>{{userName}}</a>
+            <a class="register" @click="logout">退出登录</a>
           </p>
         </div>
         <div class="typeList">
@@ -95,14 +101,28 @@ export default {
         location.query = this.$route.query,
         this.$router.push(location)
         };
+      },
+      // 退出登录
+      async logout(){
+        try {
+          await this.$store.dispatch('userLogout');
+          this.$router.push('/home')
+        } catch (error) {
+          
+        }
       }
     },
-    mounted(){
+  mounted(){
       // 通过全局事件总线清楚关键字
       this.$bus.$on("clear",()=>{
         this.keyword="";
       })
+    },
+  computed:{
+    userName(){
+      return this.$store.state.user.userInfo.name;
     }
+  }
   };
 </script>
 

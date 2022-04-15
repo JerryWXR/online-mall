@@ -21,7 +21,8 @@ export default {
   mounted(){
     // 派发action|获取商品分类的三级列表
      this.$store.dispatch("categoryList");
-    
+     
+      
   }
 };
 </script>
