@@ -37,7 +37,7 @@ VueRouter.prototype.replace=function (location,resole,reject) {
 }
 
 // 配置路由
-export default new VueRouter({
+let router = new VueRouter({
     // 配置路由
     routes,
     scrollBehavior(to,from,savedPosition){
@@ -45,6 +45,8 @@ export default new VueRouter({
         return{y:100}
     }
 })
+
+export default router ;
 
 
 const originalPush = VueRouter.prototype.push
