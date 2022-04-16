@@ -4,7 +4,8 @@ import VueRouter from 'vue-router';
 import routes from './routes'
 // 使用插件
 Vue.use(VueRouter);
-
+// 引入store
+import store from '@/store'
 // 先把VueRouter原型对象的push,先保存一份
 let originPush = VueRouter.prototype.push;
 let originReplace=VueRouter.prototype.replace
@@ -46,6 +47,36 @@ let router = new VueRouter({
     }
 })
 
+// 全局守卫：前置守卫（在路由跳转之间进行判断）
+router.beforeEach(async(to,from,next)=>{
+    // 用户信息
+let token = store.state.user.token;
+let name=store.state.user.userInfo.name
+// let userInfo=store.state.user.userInfo
+// console.log(userInfo);
+if(token){
+    if(to.path=='/login'){
+        next('/home')
+    }else{
+        if(name){
+            next()
+        }else{
+// 没有用户信息，派发action
+            try {
+                // 获取用户信息成功
+                await store.dispatch('getUserInfo')
+                next();
+            } catch (error) {
+              //   token失效，获取不到用户信息
+              await store.dispatch('userLogout')
+              next('/login')
+            }
+        }    
+    }
+}else{
+    next()
+}
+})
 export default router ;
 
 
