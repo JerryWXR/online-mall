@@ -8,8 +8,40 @@ import Detail from '@/pages/Detail'
 import AddCartSuccess from '@/pages/AddCartSuccess'
 import ShopCart from '@/pages/ShopCart'
 import Trade from '@/pages/Trade'
+import Pay from '@/pages/Pay'
+import PaySuccess from '@/pages/PaySuccess'
+import Center from '@/pages/Center'
+import MyOrder from '@/pages/Center/myOrder'
+import GroupBuy from '@/pages/Center/groupOrder'
 // 路由配置信息
 export default [
+    {
+        path:"/center",
+        component:Center,
+        meta:{show:true},
+        // 二级路由
+        children: [
+            {
+              // path: '/center/myorder',
+              path: 'myorder',
+              component: MyOrder,
+            },
+            {
+              path: 'groupbuy',
+              component: GroupBuy,
+            },
+        ]
+    },
+    {
+        path:"/paysuccess",
+        component:PaySuccess,
+        meta:{show:true}
+    },
+    {
+        path:"/pay",
+        component:Pay,
+        meta:{show:true}
+    },
     {
         path:"/trade",
         component:Trade,
