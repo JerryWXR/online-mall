@@ -1,101 +1,164 @@
+/* 
+所有路由配置的数组
+*/
+// import Home from '@/pages/Home'
+// import Search from '@/pages/Search'
+const Search = () => import('@/pages/Search')
 
-// 引入路由组件
-import Home from '@/pages/Home'
-import Search from '@/pages/Search'
-import Login from '@/pages/Login'
-import Register from '@/pages/Register'
 import Detail from '@/pages/Detail'
 import AddCartSuccess from '@/pages/AddCartSuccess'
 import ShopCart from '@/pages/ShopCart'
+
 import Trade from '@/pages/Trade'
 import Pay from '@/pages/Pay'
 import PaySuccess from '@/pages/PaySuccess'
 import Center from '@/pages/Center'
 import MyOrder from '@/pages/Center/myOrder'
 import GroupBuy from '@/pages/Center/groupOrder'
-// 路由配置信息
+
+
+import Register from '@/pages/Register'
+import Login from '@/pages/Login'
+
+/* 
+component: () => import('@/pages/Search')
+1. import(modulePath): 动态import引入模块, 被引入的模块会被单独打包
+2. 组件配置的是一个函数, 函数中通过import动态加载模块并返回, 
+    初始时函数不会执行, 第一次访问对应的路由才会执行, 也就是说只有一次请求对应的路由路径才会请求加载单独打包的js
+作用: 用于提高首屏的加载速度
+*/
+
 export default [
-    {
-        path:"/center",
-        component:Center,
-        meta:{show:true},
-        // 二级路由
-        children: [
-            {
-              // path: '/center/myorder',
-              path: 'myorder',
-              component: MyOrder,
-            },
-            {
-              path: 'groupbuy',
-              component: GroupBuy,
-            },
-        ]
+  {
+    path: '/',
+    component: () => import('@/pages/Home')
+  },
+  {
+    name: 'search',  // 是当前路由的标识名称
+    path: '/search/:keyword?',
+    component: Search,
+    // 将params参数和query参数映射成属性传入路由组件
+    props: route => ({keyword3: route.params.keyword, keyword4: route.query.keyword2})
+  },
+  {
+    name: 'detail',  // 是当前路由的标识名称
+    path: '/detail/:skuId',
+    component: Detail,
+  },
+  {
+    path: '/addcartsuccess',
+    component: AddCartSuccess,
+
+    beforeEnter (to, from, next) {
+      // 得到当前路由信息对象
+      // const route = router.currentRoute  // route就是from
+
+      // 得到要跳转到目路由的query参数
+      const skuNum = to.query.skuNum
+      // 读取保存的数据
+      const skuInfo = JSON.parse(window.sessionStorage.getItem('SKU_INFO_KEY'))
+      console.log('---', skuNum, skuInfo)
+      // 只有都存在, 才放行
+      if (skuNum && skuInfo) {
+        next()
+      } else { // 在组件对象创建前强制跳转到首页
+        next('/')
+      }
+    }
+  },
+  {
+    path: '/shopcart',
+    component: ShopCart,
+  },
+
+  {
+    path: '/trade',
+    component: Trade,
+    /* 只能从购物车界面, 才能跳转到交易界面 */
+    beforeEnter (to, from, next) {
+      if (from.path==='/shopcart') {
+        next()
+      } else {
+        next('/shopcart')
+      }
+    }
+  },
+  {
+    path: '/pay',
+    component: Pay,
+
+    // 将query参数映射成props传递给路由组件
+    props: route => ({orderId: route.query.orderId}),
+
+    /* 只能从交易界面, 才能跳转到支付界面 */
+    beforeEnter (to, from, next) {
+      if (from.path==='/trade') {
+        next()
+      } else {
+        next('/trade')
+      }
+    }
+  },
+  
+  {
+    path: '/paysuccess',
+    component: PaySuccess,
+    /* 只有从支付界面, 才能跳转到支付成功的界面 */
+    beforeEnter (to, from, next) {
+      if (from.path==='/pay') {
+        next()
+      } else {
+        next('/pay')
+      }
+    }
+  },
+  {
+    path: '/center',
+    component: Center,
+    children: [
+      {
+        // path: '/center/myorder',
+        path: 'myorder',
+        component: MyOrder,
+      },
+      {
+        path: 'groupbuy',
+        component: GroupBuy,
+      },
+
+      {
+        path: '',
+        redirect: 'myorder'
+      }
+    ]
+  },
+
+  {
+    path: '/register',
+    component: Register,
+    meta: {
+      isHideFooter: true
+    }
+  },
+  {
+    path: '/login',
+    component: Login,
+    meta: {
+      isHideFooter: true
     },
+},
+/* 
+    beforeEnter: (to, from, next) => { // 路由前置守卫
+      // 如果还没有登陆, 放行
+      if (!store.state.user.userInfo.token) {
+        next()
+      } else {
+        // 如果已经登陆, 跳转到首页
+        next('/')
+      }
+    } */
     {
-        path:"/paysuccess",
-        component:PaySuccess,
-        meta:{show:true}
-    },
-    {
-        path:"/pay",
-        component:Pay,
-        meta:{show:true}
-    },
-    {
-        path:"/trade",
-        component:Trade,
-        meta:{show:true}
-    },
-    {
-        path:"/shopcart",
-        component:ShopCart,
-        meta:{show:true}
-    },
-    {
-        path:"/addcartsuccess",
-        name:'addcartsuccess',
-        component:AddCartSuccess,
-        meta:{show:true}
-    },
-    {
-        path:"/detail/:skuid",
-        component:Detail,
-        meta:{show:true}
-    },
-    {
-        path:"/home",
-        component:Home,
-        meta:{show:true}
-    },
-    {
-        path:"/search/:keyword?",
-        component:Search,
-        meta:{show:true},
-        name:"search",
-        // 路由组件能不能传递props数据？
-        // 布尔值写法
-        // props:true,
-        // 对象写法:额外的给路由组件传递一些props
-        // props:{a:1,b:2}
-        // 函数写法:可以params参数,query参数,通过props传递给路由组件
-        props:($route)=> {
-                return {keyword:$route.params.keyword,k:$route.query.k};
-        }
-    },
-    {
-        path:"/login",
-        component:Login,
-        meta:{show:false}
-    },
-    {
-        path:"/register",
-        component:Register,
-        meta:{show:false}
-    },
-    // 重定向，在项目跑起来的时候，访问/，立马让他定向到首页
-    {
-        path:'*',
+        path:"/",
         redirect:"/home"
     }
 ]

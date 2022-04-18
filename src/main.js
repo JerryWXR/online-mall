@@ -27,6 +27,24 @@ import "swiper/css/swiper.css";
 import * as API from '@/api';
 Vue.config.productionTip = false
 
+//引入插件
+import VueLazyload from 'vue-lazyload';
+import atm from '@/assets/1.gif';
+//注册插件
+Vue.use(VueLazyload,{
+  //懒加载默认的图片
+  loading:atm
+});
+
+// 自定义插件
+import myPlugins from '@/plugins/myPlugins';
+Vue.use(myPlugins,{
+    name:'upper'
+});
+
+//引入表单校验插件
+// import "@/plugins/validate";
+
 new Vue({
   render: h => h(App),
   // 全局事件总线$bus设置

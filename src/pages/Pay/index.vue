@@ -189,8 +189,6 @@ export default {
 };
 </script>
 
-
-
 <style lang="less" scoped>
 .pay-main {
   margin-bottom: 20px;
